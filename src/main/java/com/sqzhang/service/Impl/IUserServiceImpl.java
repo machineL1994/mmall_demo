@@ -139,4 +139,41 @@ public class IUserServiceImpl implements IUserService{
             return  ServerResponse.createByErrorMessage("密码更新失败");
         }
     }
+
+    public ServerResponse<User> updateInformation(User user){
+        int resultCount = userMapper.checkEmailByUserId(user.getEmail(), user.getId());
+        if(resultCount>0){
+            return ServerResponse.createByErrorMessage("email已经存在，请重试");
+        }
+        User updateduser = new User();
+        updateduser.setId(user.getId());
+        updateduser.setEmail(user.getEmail());
+        updateduser.setQuestion(user.getQuestion());
+        updateduser.setAnswer(user.getAnswer());
+
+        int updateCount = userMapper.updateByPrimaryKeySelective(updateduser);
+        if(updateCount>0){
+            return ServerResponse.createBySuccessMessage("更新个人信息成功");
+        }
+        return ServerResponse.createByErrorMessage("更新个人信息失败");
+
+    }
+
+    public ServerResponse<User> getInformation(Integer userId){
+        User user = userMapper.selectByPrimaryKey(userId);
+        if(user == null){
+            return ServerResponse.createByErrorMessage("找不到当前用户");
+        }
+        user.setPassword(StringUtils.EMPTY);
+        return ServerResponse.createBySuccess(user);
+    }
+
+    //backend
+    public ServerResponse checkAdminRole(User user){
+        if(user!=null&&user.getRole().intValue()==Const.Role.Role_ADMIN){
+            return ServerResponse.createBySuccess();
+        }
+        return ServerResponse.createByError();
+    }
+
 }
